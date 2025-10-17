@@ -12,60 +12,66 @@
 
 #include "get_next_line.h"
 
-char	*new_hold(char *hold, int fd)
+char	*new_hold(char *hold, int fd, int *read_info)
 {
 	char	*buffer;
-	int		read_info;
 
 	buffer = malloc(BUFFER_SIZE + 1);
 	if (!buffer)
 		return (NULL);
-	read_info = read(fd, buffer, BUFFER_SIZE);
-	
+	*read_info = read(fd, buffer, BUFFER_SIZE);
+	if (*read_info == -1)
+		return (NULL);
+	if (ft_strchr(buffer, '\n') != buffer)
+		return (ft_strjoin(hold, buffer));
+	while (ft_strchr(buffer, '\n') == buffer)
+	{
+		if (*read_info == 0)
+		{
+			hold = ft_strjoin(hold, buffer);
+			return (hold);
+		}
+		hold = ft_strjoin(hold, buffer);
+		buffer = malloc(BUFFER_SIZE + 1);
+		if (!buffer)
+			return (NULL);
+		*read_info = read(fd, buffer, BUFFER_SIZE);
+	}
+	return (hold);
 }
 
 char	*search_hold(char *hold)
 {
-	char	*output;
+	char	*end;
 	size_t	i;
-	size_t	hold_length;
 
 	i = 0;
-	hold_length = ft_strlen(hold);
-	while (hold[i])
-	{
-		if (hold[i] == '\n')
-			break ;
-		i++;
-	}
-	if (i == hold_length)
-		return (NULL);
-	output = (char *)malloc(hold_length - i + 1);
-	if (!output)
-		return (NULL);
-	output[i + 1] = '\0';
-	while (i != 0)
-	{
-		output[i] = hold[i];
-		i--;
-	}
-	return (output);
+	end = ft_strchr(hold, '\n');
+	if (end == hold)
 }
 
 char	*get_next_line(int fd)
 {
 	char		*output;
 	static char	*hold;
+	int			read_info;
+
+	read_info = 0;
 	if (!fd || BUFFER_SIZE <= 0)
 		return (NULL);
-	if (!hold)
-		hold = new_hold(fd);
+	hold = new_hold(hold, fd, &read_info);
 	if (!hold)
 		return (NULL);
+	if (read_info == 0)
+	{
+		output = ft_strdup(hold);
+		free(hold);
+		return (output);
+	}
 	output = search_hold(hold);
 	if (!output)
 		return (NULL);
-	free(hold);
+	
 	return (output);
 }
 
