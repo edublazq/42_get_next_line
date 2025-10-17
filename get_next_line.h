@@ -17,10 +17,14 @@
 # include <unistd.h>
 # include <stdlib.h>
 
-char	*get_next_line(int fd);
-
 # ifndef BUFFER_SIZE
-#  define BUFFER_SIZE 1024
+#  define BUFFER_SIZE 120
 # endif
+
+char	*ft_strdup(const char *s);
+char	*ft_strchr(const char *s, int c);
+size_t	ft_strlen(const char *s);
+char	*get_next_line(int fd);
+char	*ft_strjoin(const char *s1, const char *s2);
 
 #endif
