@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-//#include <stdio.h>
+#include <stdio.h>
 #include "get_next_line.h"
 
 size_t	ft_strlen(const char *s)
@@ -80,26 +80,28 @@ char	*get_next_line(int fd)
 
 	read_info = 0;
 	if (fd < 0 || BUFFER_SIZE <= 0)
+	{
+		if (hold)
+			free(hold);
 		return (NULL);
+	}
 	hold = new_hold(hold, fd, &read_info);
-	if (!hold)
-		return (NULL);
 	if (read_info == 0 && (!hold || *hold == '\0'))
+	{
+		if (hold)
+			free(hold);
+		hold = NULL;
 		return (NULL);
+	}
 	output = search_hold(&hold);
-	if (!output)
-		return (NULL);
+	if (read_info == 0 && (!hold || *hold == '\0'))
+		free(hold);
 	return (output);
 }
-/* 
+
 int	main(void)
 {
-	int fd = open("hola.txt", O_RDONLY);
-	char	*gnl = get_next_line(fd);
-	while (gnl)
-	{
-		printf("%s", gnl);
-		gnl = get_next_line(fd);
-	}
-	close(fd);
-} */
+	char *gnl = get_next_line(0);
+	printf("%s", gnl);
+	free(gnl);
+}
