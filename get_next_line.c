@@ -10,44 +10,66 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+//#include <stdio.h>
 #include "get_next_line.h"
+
+size_t	ft_strlen(const char *s)
+{
+	size_t	i;
+
+	i = 0;
+	while (s[i])
+		i++;
+	return (i);
+}
 
 char	*new_hold(char *hold, int fd, int *read_info)
 {
 	char	*buffer;
 
-	buffer = malloc(BUFFER_SIZE + 1);
-	if (!buffer)
-		return (NULL);
-	*read_info = read(fd, buffer, BUFFER_SIZE);
-	if (*read_info == -1)
-		return (NULL);
-	if (ft_strchr(buffer, '\n') != buffer)
-		return (ft_strjoin(hold, buffer));
-	while (ft_strchr(buffer, '\n') == buffer)
+	if (!hold)
+		hold = ft_strdup("");
+	while (1)
 	{
-		if (*read_info == 0)
-		{
-			hold = ft_strjoin(hold, buffer);
-			return (hold);
-		}
-		hold = ft_strjoin(hold, buffer);
 		buffer = malloc(BUFFER_SIZE + 1);
 		if (!buffer)
 			return (NULL);
 		*read_info = read(fd, buffer, BUFFER_SIZE);
+		if (*read_info == -1)
+			return (free(buffer), NULL);
+		buffer[*read_info] = '\0';
+		hold = ft_strjoin(hold, buffer);
+		if (ft_strchr(hold, '\n'))
+			break ;
+		if (*read_info == 0)
+			break ;
 	}
 	return (hold);
 }
 
-char	*search_hold(char *hold)
+char	*search_hold(char **hold)
 {
 	char	*end;
+	char	*tmp;
+	char	*output;
 	size_t	i;
 
-	i = 0;
-	end = ft_strchr(hold, '\n');
-	if (end == hold)
+	if (!*hold || **hold == '\0')
+		return (NULL);
+	end = ft_strchr(*hold, '\n');
+	if (!end)
+	{
+		output = ft_strdup(*hold);
+		free(*hold);
+		*hold = NULL;
+		return (output);
+	}
+	i = end - *hold + 1;
+	output = ft_substr(*hold, 0, i);
+	tmp = ft_strdup(end + 1);
+	free(*hold);
+	*hold = tmp;
+	return (output);
 }
 
 char	*get_next_line(int fd)
@@ -57,29 +79,27 @@ char	*get_next_line(int fd)
 	int			read_info;
 
 	read_info = 0;
-	if (!fd || BUFFER_SIZE <= 0)
+	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
 	hold = new_hold(hold, fd, &read_info);
 	if (!hold)
 		return (NULL);
-	if (read_info == 0)
-	{
-		output = ft_strdup(hold);
-		free(hold);
-		return (output);
-	}
-	output = search_hold(hold);
+	if (read_info == 0 && (!hold || *hold == '\0'))
+		return (NULL);
+	output = search_hold(&hold);
 	if (!output)
 		return (NULL);
-	
 	return (output);
 }
-
-#include <stdio.h>
-
+/* 
 int	main(void)
 {
 	int fd = open("hola.txt", O_RDONLY);
-	printf("%s", get_next_line(fd));
+	char	*gnl = get_next_line(fd);
+	while (gnl)
+	{
+		printf("%s", gnl);
+		gnl = get_next_line(fd);
+	}
 	close(fd);
-}
+} */
