@@ -18,6 +18,8 @@ size_t	ft_strlen(const char *s)
 	size_t	i;
 
 	i = 0;
+	if (!s)
+		return (0);
 	while (s[i])
 		i++;
 	return (i);
@@ -36,7 +38,7 @@ char	*new_hold(char *hold, int fd, int *read_info)
 			return (NULL);
 		*read_info = read(fd, buffer, BUFFER_SIZE);
 		if (*read_info == -1)
-			return (free(buffer), NULL);
+			return (free(buffer), free(hold), NULL);
 		buffer[*read_info] = '\0';
 		hold = ft_strjoin(hold, buffer);
 		if (ft_strchr(hold, '\n'))
@@ -66,7 +68,10 @@ char	*search_hold(char **hold)
 	}
 	i = end - *hold + 1;
 	output = ft_substr(*hold, 0, i);
-	tmp = ft_strdup(end + 1);
+	if (*end == '\0')
+		tmp = NULL;
+	else
+		tmp = ft_strdup(end + 1);
 	free(*hold);
 	*hold = tmp;
 	return (output);
@@ -88,20 +93,15 @@ char	*get_next_line(int fd)
 	hold = new_hold(hold, fd, &read_info);
 	if (read_info == 0 && (!hold || *hold == '\0'))
 	{
-		if (hold)
-			free(hold);
+		free(hold);
 		hold = NULL;
 		return (NULL);
 	}
 	output = search_hold(&hold);
 	if (read_info == 0 && (!hold || *hold == '\0'))
+	{
 		free(hold);
+		hold = NULL;
+	}
 	return (output);
-}
-
-int	main(void)
-{
-	char *gnl = get_next_line(0);
-	printf("%s", gnl);
-	free(gnl);
 }
